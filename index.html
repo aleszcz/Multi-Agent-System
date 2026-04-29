@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Agent Workflows — The HVAC Commissioning Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f5f2ec;
+    --cream: #ede9e0;
+    --warm-mid: #c4b89a;
+    --accent: #c4440a;
+    --accent2: #1a5c8a;
+    --accent3: #2d7a4f;
+    --rule: rgba(15,14,13,0.12);
+    --card-bg: #ffffff;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    line-height: 1.7;
+    font-size: 18px;
+    overflow-x: hidden;
+  }
+
+  /* ─── HEADER ─── */
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 72px 48px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 79px,
+      rgba(255,255,255,0.03) 79px,
+      rgba(255,255,255,0.03) 80px
+    );
+  }
+  .masthead-inner { max-width: 860px; margin: 0 auto; position: relative; }
+  .masthead-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .masthead-label::after {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--warm-mid);
+  }
+  .masthead h1 {
+    font-family: var(--sans);
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -.02em;
+    margin-bottom: 24px;
+  }
+  .masthead h1 em {
+    font-style: normal;
+    color: var(--accent);
+    display: block;
+  }
+  .masthead-sub {
+    font-family: var(--serif);
+    font-size: 20px;
+    color: rgba(245,242,236,0.7);
+    max-width: 540px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+  .stat-strip {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.04);
+    padding: 20px 24px;
+  }
+  .stat-num {
+    font-family: var(--sans);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warm-mid);
+    letter-spacing: .05em;
+  }
+
+  /* ─── NAV ─── */
+  .toc-bar {
+    background: var(--cream);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .toc-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .toc-inner::-webkit-scrollbar { display: none; }
+  .toc-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 14px 16px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: border-color .2s, color .2s;
+    opacity: .6;
+  }
+  .toc-link:hover { opacity: 1; border-bottom-color: var(--accent); color: var(--accent); }
+
+  /* ─── LAYOUT ─── */
+  .content { max-width: 860px; margin: 0 auto; padding: 0 48px; }
+
+  section { padding: 64px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .15em;
+    color: var(--warm-mid);
+    padding-top: 8px;
+    min-width: 32px;
+  }
+  .section-title {
+    font-family: var(--sans);
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.1;
+  }
+  .section-title small {
+    display: block;
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(15,14,13,0.5);
+    margin-top: 6px;
+    letter-spacing: 0;
+  }
+
+  p { margin-bottom: 1.2em; color: rgba(15,14,13,0.85); }
+  p:last-child { margin-bottom: 0; }
+
+  .lead {
+    font-size: 21px;
+    line-height: 1.6;
+    color: var(--ink);
+    font-style: italic;
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    margin-bottom: 32px;
+  }
+
+  /* ─── PROBLEM CALLOUT ─── */
+  .problem-box {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 32px 36px;
+    margin: 32px 0;
+  }
+  .problem-box p { color: rgba(245,242,236,0.8); }
+  .problem-box h3 {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  /* ─── METRIC COMPARISON ─── */
+  .comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .compare-card {
+    border-radius: 6px;
+    padding: 28px;
+    border: 1px solid var(--rule);
+  }
+  .compare-card.bad { background: #fff5f3; border-color: rgba(196,68,10,0.2); }
+  .compare-card.good { background: #f0f7f3; border-color: rgba(45,122,79,0.2); }
+  .compare-card h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .compare-card.bad h4 { color: var(--accent); }
+  .compare-card.good h4 { color: var(--accent3); }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-label { font-family: var(--mono); font-size: 12px; color: rgba(15,14,13,0.55); }
+  .metric-val {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .bad .metric-val { color: var(--accent); }
+  .good .metric-val { color: var(--accent3); }
+
+  /* ─── KITCHEN DIAGRAM ─── */
+  .kitchen-diagram {
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 40px;
+    margin: 32px 0;
+    position: relative;
+  }
+  .kitchen-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 32px;
+  }
+  .chef-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+  }
+  .chef-node {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 18px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .chef-node .role {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 4px;
+  }
+  .chef-node .title {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .chef-node .delegate {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: rgba(245,242,236,0.45);
+    margin-top: 6px;
+  }
+  .arrow-col {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0;
+  }
+  .arrow-down-svg { opacity: 0.3; }
+  .cooks-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .cook-node {
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+  .cook-node .cook-icon { font-size: 22px; margin-bottom: 8px; }
+  .cook-node .cook-role {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 4px;
+  }
+  .cook-node .cook-title {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .cook-node .cook-sub {
+    font-family: var(--serif);
+    font-size: 11px;
+    font-style: italic;
+    color: rgba(15,14,13,0.5);
+  }
+  .flow-note {
+    margin-top: 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--warm-mid);
+    text-align: center;
+    letter-spacing: .04em;
+  }
+
+  /* ─── WINS ─── */
+  .wins-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .win-card {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 28px 24px;
+    background: var(--card-bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .win-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .win-card.tokens::before { background: var(--accent); }
+  .win-card.control::before { background: var(--accent2); }
+  .win-card.speed::before { background: var(--accent3); }
+  .win-num {
+    font-family: var(--sans);
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .win-card.tokens .win-num { color: var(--accent); }
+  .win-card.control .win-num { color: var(--accent2); }
+  .win-card.speed .win-num { color: var(--accent3); }
+  .win-title {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .win-desc {
+    font-family: var(--serif);
+    font-size: 14px;
+    color: rgba(15,14,13,0.65);
+    line-height: 1.5;
+  }
+
+  /* ─── PATTERNS ─── */
+  .pattern-list { display: flex; flex-direction: column; gap: 24px; margin: 32px 0; }
+  .pattern-card {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+  .pattern-header {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .pattern-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 14px 18px;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    min-width: 48px;
+    justify-content: center;
+  }
+  .pattern-name {
+    padding: 14px 20px;
+    flex: 1;
+  }
+  .pattern-name h3 {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .pattern-name .tagline {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(15,14,13,0.5);
+  }
+  .pattern-when {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    padding: 14px 20px;
+    white-space: nowrap;
+  }
+  .pattern-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .pattern-text { font-size: 15px; line-height: 1.65; color: rgba(15,14,13,0.8); }
+  .pattern-text p { font-size: 15px; margin-bottom: .8em; }
+  .pattern-rules {
+    background: var(--cream);
+    border-radius: 4px;
+    padding: 18px;
+  }
+  .pattern-rules h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 12px;
+  }
+  .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-family: var(--serif);
+    font-size: 13px;
+    color: rgba(15,14,13,0.75);
+    line-height: 1.4;
+  }
+  .rule-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  /* ─── BUILDER / VERIFIER ─── */
+  .bv-diagram {
+    margin: 32px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+  .bv-top {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: stretch;
+    border-bottom: 1px solid var(--rule);
+  }
+  .bv-box { padding: 28px; }
+  .bv-box.builder { border-right: 1px solid var(--rule); }
+  .bv-mid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+    font-size: 24px;
+    color: var(--warm-mid);
+    font-family: var(--mono);
+  }
+  .bv-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .builder .bv-role { color: var(--accent3); }
+  .verifier .bv-role { color: var(--accent2); }
+  .bv-title {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .bv-desc { font-size: 14px; color: rgba(15,14,13,0.65); line-height: 1.5; font-style: italic; }
+  .bv-loop {
+    padding: 16px 24px;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(15,14,13,0.5);
+  }
+  .loop-step {
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: white;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font-size: 11px;
+  }
+  .loop-arrow { color: var(--warm-mid); }
+  .loop-fail {
+    background: rgba(196,68,10,0.08);
+    border-color: rgba(196,68,10,0.2);
+    color: var(--accent);
+  }
+
+  /* ─── SEQUENTIAL FLOW ─── */
+  .flow-phases {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 32px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .phase-step {
+    flex: 1;
+    padding: 24px 16px;
+    text-align: center;
+    border-right: 1px solid var(--rule);
+    position: relative;
+    background: var(--card-bg);
+  }
+  .phase-step:last-child { border-right: none; }
+  .phase-step::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: var(--warm-mid);
+    z-index: 1;
+  }
+  .phase-step:last-child::after { display: none; }
+  .phase-step h4 {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .phase-step p { font-size: 11px; color: rgba(15,14,13,0.5); margin-bottom: 0; font-family: var(--mono); }
+  .phase-step.p1 { border-top: 3px solid #2d7a4f; }
+  .phase-step.p2 { border-top: 3px solid #1a5c8a; }
+  .phase-step.p3 { border-top: 3px solid #c4440a; }
+  .phase-step.p4 { border-top: 3px solid #8b5cf6; }
+
+  /* ─── TOKEN CONTEXT VIZ ─── */
+  .token-viz {
+    background: var(--cream);
+    border-radius: 6px;
+    padding: 28px;
+    margin: 24px 0;
+    border: 1px solid var(--rule);
+  }
+  .token-viz h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 16px;
+  }
+  .token-bar-row { margin-bottom: 12px; }
+  .token-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(15,14,13,0.6);
+    margin-bottom: 6px;
+  }
+  .token-bar-track {
+    height: 20px;
+    background: white;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+  }
+  .token-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: white;
+    transition: width 1s ease;
+  }
+  .bar-single { background: var(--accent); width: 4%; }
+  .bar-multi { background: var(--accent3); width: 100%; }
+
+  /* ─── RULE TAGS ─── */
+  .tag-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .tag-red { background: rgba(196,68,10,0.07); color: var(--accent); border-color: rgba(196,68,10,0.25); }
+  .tag-blue { background: rgba(26,92,138,0.07); color: var(--accent2); border-color: rgba(26,92,138,0.25); }
+  .tag-green { background: rgba(45,122,79,0.07); color: var(--accent3); border-color: rgba(45,122,79,0.25); }
+
+  /* ─── PULLQUOTE ─── */
+  .pullquote {
+    margin: 40px 0;
+    padding: 0 0 0 28px;
+    border-left: 4px solid var(--ink);
+  }
+  .pullquote p {
+    font-family: var(--serif);
+    font-size: 24px;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  .pullquote cite {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+  }
+
+  /* ─── AGENT FLOW ─── */
+  .agent-flow {
+    margin: 32px 0;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .af-step {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .af-step:last-child { border-bottom: none; }
+  .af-num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--cream);
+    color: var(--warm-mid);
+    padding: 18px 20px;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--rule);
+    min-width: 52px;
+    justify-content: center;
+  }
+  .af-content { padding: 16px 20px; flex: 1; }
+  .af-actor {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 4px;
+  }
+  .af-action {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .af-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-right: 20px;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 48px;
+    margin-top: 0;
+  }
+  .footer-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+  .footer h3 {
+    font-family: var(--sans);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .footer p {
+    font-family: var(--serif);
+    font-size: 15px;
+    color: rgba(245,242,236,0.65);
+    line-height: 1.6;
+  }
+  .footer-links h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    margin-bottom: 16px;
+  }
+  .footer-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--serif);
+    font-size: 14px;
+    color: rgba(245,242,236,0.7);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-link:hover { color: var(--paper); }
+  .footer-link::before { content: '→'; font-family: var(--mono); font-size: 12px; color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .masthead, .content, .footer { padding-left: 24px; padding-right: 24px; }
+    .toc-bar { padding: 0 24px; }
+    .stat-strip { grid-template-columns: 1fr; }
+    .comparison, .wins-grid, .cooks-row { grid-template-columns: 1fr; }
+    .pattern-body { grid-template-columns: 1fr; }
+    .bv-top { grid-template-columns: 1fr; }
+    .bv-mid { padding: 12px; }
+    .footer-inner { grid-template-columns: 1fr; }
+    .flow-phases { flex-direction: column; }
+    .phase-step::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-label">Field Guide · AI Architecture</div>
+    <h1>Commission the<em>Multi-Agent System</em></h1>
+    <p class="masthead-sub">A practical guide to multi-agent workflows — from one overloaded technician to a fully coordinated commissioning crew.</p>
+    <div class="stat-strip">
+      <div class="stat-item">
+        <div class="stat-num">36.5min</div>
+        <div class="stat-desc">Single-agent avg. run time</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">5.2min</div>
+        <div class="stat-desc">Multi-agent avg. run time</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">84.3%</div>
+        <div class="stat-desc">Fewer manual interventions</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="toc-bar">
+  <div class="toc-inner">
+    <a href="#problem" class="toc-link">The Problem</a>
+    <a href="#architecture" class="toc-link">Architecture</a>
+    <a href="#wins" class="toc-link">Three Wins</a>
+    <a href="#patterns" class="toc-link">5 Patterns</a>
+    <a href="#bv" class="toc-link">Build vs Verify</a>
+    <a href="#closing" class="toc-link">Closing</a>
+  </div>
+</nav>
+
+<div class="content">
+
+  <!-- SECTION 1: THE PROBLEM -->
+  <section id="problem">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <div class="section-title">The Single-Agent Bottleneck<small>Why one technician can't commission a whole building</small></div>
+    </div>
+
+    <p class="lead">Every developer building with AI agents eventually hits the same wall. It works fine for simple tasks — but the moment your project becomes even slightly complex, things fall apart.</p>
+
+    <p>The agent gets overwhelmed. Context bloats. Errors compound. And progress slows to a crawl. The issue isn't the model. It's the architecture.</p>
+
+    <div class="problem-box">
+      <h3>The two root causes</h3>
+      <p>We expect too much from a single agent, and we don't break problems into simple enough, verifiable tasks. The single-agent one-shot is over — not because models aren't powerful enough, but because the architecture doesn't scale.</p>
+    </div>
+
+    <p>Trying to make a single AI agent handle everything is like sending one HVAC technician to commission an entire skyscraper alone — running load calculations, balancing air distribution, testing controls, verifying refrigerant charge, and signing off on safety interlocks all at once. It doesn't scale. It doesn't specialise. And it fails.</p>
+
+    <div class="comparison">
+      <div class="compare-card bad">
+        <h4>Single Agent</h4>
+        <div class="metric-row">
+          <span class="metric-label">Avg. run time</span>
+          <span class="metric-val">36.5m</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Interventions</span>
+          <span class="metric-val">12</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Success rate</span>
+          <span class="metric-val">0%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Context limit</span>
+          <span class="metric-val">~200K</span>
+        </div>
+      </div>
+      <div class="compare-card good">
+        <h4>Multi-Agent (Codex Spark)</h4>
+        <div class="metric-row">
+          <span class="metric-label">Avg. run time</span>
+          <span class="metric-val">5.2m</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Interventions</span>
+          <span class="metric-val">2</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Success rate</span>
+          <span class="metric-val">100%</span>
+        </div>
+        <div class="metric-row">
+          <span class="metric-label">Effective context</span>
+          <span class="metric-val">25M+</span>
+        </div>
+      </div>
+    </div>
+
+    <p>These numbers come from a real benchmark: using Codex and the Figma MCP to copy a website into Figma. The single-agent workflow had a 100% failure rate. The multi-agent workflow succeeded on the first try.</p>
+  </section>
+
+  <!-- SECTION 2: ARCHITECTURE -->
+  <section id="architecture">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <div class="section-title">The Commissioning Architecture<small>Lead engineer, field technicians, one signed-off system</small></div>
+    </div>
+
+    <p>Multi-agent workflows fix the single-agent bottleneck at the architecture level. Instead of one technician doing everything, you have a lead commissioning engineer who takes the project scope, breaks it into verified work orders, and dispatches each one to a specialist technician to execute.</p>
+
+    <div class="kitchen-diagram">
+      <div class="kitchen-label">System architecture</div>
+      <div class="chef-row">
+        <div class="chef-node">
+          <div class="role">Orchestrator</div>
+          <div class="title">🏗️ Lead Commissioning Engineer</div>
+          <div class="delegate">Tool: delegate_task only · Sees test reports, never raw sensor logs</div>
+        </div>
+      </div>
+      <div class="arrow-col">
+        <svg class="arrow-down-svg" width="24" height="32" viewBox="0 0 24 32">
+          <line x1="12" y1="0" x2="12" y2="24" stroke="#0f0e0d" stroke-width="1.5"/>
+          <polyline points="6,18 12,26 18,18" fill="none" stroke="#0f0e0d" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="cooks-row">
+        <div class="cook-node">
+          <div class="cook-icon">🌡️</div>
+          <div class="cook-role">Subagent A</div>
+          <div class="cook-title">Air Balancing</div>
+          <div class="cook-sub">Fresh context window</div>
+        </div>
+        <div class="cook-node">
+          <div class="cook-icon">⚙️</div>
+          <div class="cook-role">Subagent B</div>
+          <div class="cook-title">Controls & BMS</div>
+          <div class="cook-sub">Fresh context window</div>
+        </div>
+        <div class="cook-node">
+          <div class="cook-icon">🔬</div>
+          <div class="cook-role">Subagent C</div>
+          <div class="cook-title">Leak & Safety Tests</div>
+          <div class="cook-sub">Fresh context window</div>
+        </div>
+        <div class="cook-node">
+          <div class="cook-icon">📋</div>
+          <div class="cook-role">Subagent D</div>
+          <div class="cook-title">Sign-off Docs</div>
+          <div class="cook-sub">Fresh context window</div>
+        </div>
+      </div>
+      <div class="flow-note">Each subagent gets minimum viable context · Returns test summary only · No prior job history</div>
+    </div>
+
+    <p>The key principle: the field technician doesn't get the full project history or the 15,000-line specification document. They get the minimum viable context to commission one specific system on one specific floor.</p>
+
+    <div class="agent-flow">
+      <div class="af-step">
+        <div class="af-num">1</div>
+        <div class="af-content">
+          <div class="af-actor">Human</div>
+          <div class="af-action">Talks exclusively to the orchestrator with the high-level goal</div>
+        </div>
+        <span class="af-badge" style="background:rgba(15,14,13,0.05);color:rgba(15,14,13,0.4);">input</span>
+      </div>
+      <div class="af-step">
+        <div class="af-num">2</div>
+        <div class="af-content">
+          <div class="af-actor">Orchestrator</div>
+          <div class="af-action">Breaks the goal into scoped, verifiable tickets. Stripped of all tools except <code style="font-family:var(--mono);font-size:12px;background:var(--cream);padding:1px 5px;border-radius:3px;">delegate_task</code></div>
+        </div>
+        <span class="af-badge tag-blue">plan</span>
+      </div>
+      <div class="af-step">
+        <div class="af-num">3</div>
+        <div class="af-content">
+          <div class="af-actor">Subagents</div>
+          <div class="af-action">Each spawned with a fresh context window, execute their task independently with read/write/MCP access</div>
+        </div>
+        <span class="af-badge tag-green">execute</span>
+      </div>
+      <div class="af-step">
+        <div class="af-num">4</div>
+        <div class="af-content">
+          <div class="af-actor">Subagents → Orchestrator</div>
+          <div class="af-action">Return a summary of their work — never raw sensor logs — back to the Lead Engineer</div>
+        </div>
+        <span class="af-badge tag-red">report</span>
+      </div>
+    </div>
+
+    <p>This effectively extends the orchestrator's context window to as many subagents as it can spawn. You can work all day without losing context, compacting, or starting over.</p>
+  </section>
+
+  <!-- SECTION 3: THREE WINS -->
+  <section id="wins">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <div class="section-title">Three Immediate Wins<small>What you get from running a proper commissioning crew</small></div>
+    </div>
+
+    <div class="wins-grid">
+      <div class="win-card tokens">
+        <div class="win-num">25M+</div>
+        <div class="win-title">Token Scale</div>
+        <div class="win-desc">Effective context goes from ~200K to 25M+. Each subagent has its own fresh window, so the orchestrator never has to read raw files or see tool-call results directly.</div>
+      </div>
+      <div class="win-card control">
+        <div class="win-num">84%</div>
+        <div class="win-title">Fewer Interventions</div>
+        <div class="win-desc">Sequential subagent loops reduced manual interventions by 84.3% in internal trials. Each step becomes a precise, verifiable ticket with clear pass/fail criteria.</div>
+      </div>
+      <div class="win-card speed">
+        <div class="win-num">5×</div>
+        <div class="win-title">Speed Gains</div>
+        <div class="win-desc">Parallel agents working on different features, files, or experiments. Five mascot variations in one minute instead of five. With near-instant models, verification steps are practically free.</div>
+      </div>
+    </div>
+
+    <div class="token-viz">
+      <h4>Effective context window comparison</h4>
+      <div class="token-bar-row">
+        <div class="token-bar-label">
+          <span>Single agent</span>
+          <span>~200K tokens</span>
+        </div>
+        <div class="token-bar-track">
+          <div class="token-bar-fill bar-single">200K</div>
+        </div>
+      </div>
+      <div class="token-bar-row" style="margin-bottom:0">
+        <div class="token-bar-label">
+          <span>Multi-agent orchestration</span>
+          <span>25M+ tokens</span>
+        </div>
+        <div class="token-bar-track">
+          <div class="token-bar-fill bar-multi">25M+</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pullquote">
+      <p>"Instead of one technician doing the survey, installation, balancing, and sign-off, each step becomes a precise, verifiable work order."</p>
+      <cite>The multi-agent principle</cite>
+    </div>
+  </section>
+
+  <!-- SECTION 4: FIVE PATTERNS -->
+  <section id="patterns">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <div class="section-title">5 Patterns That Actually Work<small>Start at the top and work your way down</small></div>
+    </div>
+
+    <p>Over testing dozens of workflows across different AI agents, five patterns have proven consistently effective. Each builds on the last in complexity.</p>
+
+    <div class="pattern-list">
+
+      <!-- Pattern 1 -->
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-num">01</div>
+          <div class="pattern-name">
+            <h3>The Pre-Commissioning Survey</h3>
+            <div class="tagline">Run many independent checks in parallel, then select the best readings</div>
+          </div>
+          <div class="pattern-when">Easiest · Start here</div>
+        </div>
+        <div class="pattern-body">
+          <div class="pattern-text">
+            <p>Before a commissioning crew touches a building, surveyors fan out across every floor independently — one checking duct routing, one logging nameplate data, one photographing control panels. None waits for the others. At the end, the lead engineer reviews and selects what's usable.</p>
+            <p>Apply this to AI: dispatch multiple subagents with the same brief, let them generate outputs in parallel, then manually curate the results. Every task is fully independent — no file conflicts, no dependency graphs, no merge logic.</p>
+            <p><em>Example: dispatch 5 Codex Spark subagents to generate 10 UI variations each. Cherry-pick the best. Discard the rest.</em></p>
+          </div>
+          <div class="pattern-rules">
+            <h4>Requirements</h4>
+            <div class="rule-item"><div class="rule-dot"></div>Tasks must be fully independent</div>
+            <div class="rule-item"><div class="rule-dot"></div>No shared files between subagents</div>
+            <div class="rule-item"><div class="rule-dot"></div>Human curates final output</div>
+            <div class="rule-item"><div class="rule-dot"></div>Best for: design exploration, variations, test generation</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern 2 -->
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-num">02</div>
+          <div class="pattern-name">
+            <h3>The Commissioning Swarm</h3>
+            <div class="tagline">All trades on site simultaneously — each owns a separate zone</div>
+          </div>
+          <div class="pattern-when">Parallel execution</div>
+        </div>
+        <div class="pattern-body">
+          <div class="pattern-text">
+            <p>On a large commercial job, the air-side tech is balancing VAV boxes on floors 1–5 while the controls engineer is mapping BMS points on floors 6–10, and the refrigeration crew is leak-testing the rooftop plant — all at the same time. Each trade owns a distinct zone and never steps on another's work.</p>
+            <p>Multiple subagents run simultaneously on clearly partitioned scopes. Good fits: building multiple independent app components, writing tests for different modules, porting pages from one framework to another.</p>
+          </div>
+          <div class="pattern-rules">
+            <h4>Critical rule</h4>
+            <div class="rule-item"><div class="rule-dot"></div>Deeply specific scope per subagent</div>
+            <div class="rule-item"><div class="rule-dot"></div>Individual, verifiable acceptance criteria</div>
+            <div class="rule-item"><div class="rule-dot"></div>Clearly documented inter-system dependencies</div>
+            <div class="rule-item" style="border-top:1px solid var(--rule);padding-top:8px;margin-top:8px;color:var(--accent)"><div class="rule-dot" style="background:var(--accent)"></div><strong>No shared files.</strong> If two subagents must edit the same file, use a different pattern.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern 3 -->
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-num">03</div>
+          <div class="pattern-name">
+            <h3>Commissioning Phases</h3>
+            <div class="tagline">Each phase signs off before the next one starts</div>
+          </div>
+          <div class="pattern-when">Large projects</div>
+        </div>
+        <div class="pattern-body">
+          <div class="pattern-text">
+            <p>HVAC commissioning on a large project runs in strict phases: mechanical completion must be certified before functional testing starts, and functional testing must pass before integrated systems testing begins. Within each phase, multiple technicians work in parallel on their assigned systems.</p>
+            <p>Apply this structure to AI projects: break the work into phases where each depends on the verified output of the previous one. Within each phase, any number of subagents can run in parallel. Perfect for full app rebuilds or large refactors.</p>
+          </div>
+          <div class="pattern-rules">
+            <h4>Phase structure</h4>
+            <div class="flow-phases" style="flex-direction:column;margin:0;">
+              <div class="phase-step p1" style="border-right:none;border-bottom:1px solid var(--rule);border-top:3px solid #2d7a4f;text-align:left;padding:12px 16px;">
+                <h4 style="font-size:12px;">Phase 1 — Mechanical Completion</h4>
+                <p>Map systems, define acceptance criteria</p>
+              </div>
+              <div class="phase-step p2" style="border-right:none;border-bottom:1px solid var(--rule);border-top:3px solid #1a5c8a;text-align:left;padding:12px 16px;">
+                <h4 style="font-size:12px;">Phase 2 — Functional Testing (parallel)</h4>
+                <p>Multiple technicians, shared scope brief</p>
+              </div>
+              <div class="phase-step p3" style="border-right:none;border-bottom:1px solid var(--rule);border-top:3px solid #c4440a;text-align:left;padding:12px 16px;">
+                <h4 style="font-size:12px;">Phase 3 — Integrated Systems Test</h4>
+                <p>Cross-system checks, failure mode tests</p>
+              </div>
+              <div class="phase-step p4" style="border-right:none;border-top:3px solid #8b5cf6;text-align:left;padding:12px 16px;">
+                <h4 style="font-size:12px;">Phase 4 — Handover & Documentation</h4>
+                <p>O&amp;M manuals, as-built drawings, sign-off</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern 4 -->
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-num">04</div>
+          <div class="pattern-name">
+            <h3>The Test-and-Handoff Pipeline</h3>
+            <div class="tagline">Sequential work orders — state lives in test sheets, not memory</div>
+          </div>
+          <div class="pattern-when">Long-horizon tasks</div>
+        </div>
+        <div class="pattern-body">
+          <div class="pattern-text">
+            <p>A refrigeration circuit doesn't get commissioned in one pass. One technician pressure-tests the pipework, signs the leak test sheet, and hands it to the next who pulls vacuum, then hands it to the next who charges refrigerant, then to the final tech who verifies superheat and subcooling. Each station does one bounded job and passes the documented result forward.</p>
+            <p>In this pattern, subagents operate sequentially. Each does one smaller task, validates it, then hands the workpiece to the next. State lives in files and task queues — not in conversation history. Do not drag unrelated prior context through a single giant thread.</p>
+          </div>
+          <div class="pattern-rules">
+            <h4>Core principle</h4>
+            <div class="rule-item"><div class="rule-dot"></div>Each subagent gets only the context for its one step</div>
+            <div class="rule-item"><div class="rule-dot"></div>Handoff documented in files, not chat history</div>
+            <div class="rule-item"><div class="rule-dot"></div>State lives in files and task queues</div>
+            <div class="rule-item"><div class="rule-dot"></div>Best for: research pipelines, hardware bring-up, multi-step deployments</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern 5 -->
+      <div class="pattern-card">
+        <div class="pattern-header">
+          <div class="pattern-num">05</div>
+          <div class="pattern-name">
+            <h3>The Independent Witness</h3>
+            <div class="tagline">Separate the installer from the inspector — always</div>
+          </div>
+          <div class="pattern-when">Always. Layer on top of everything.</div>
+        </div>
+        <div class="pattern-body">
+          <div class="pattern-text">
+            <p>In formal commissioning, the technician who installs the system is never the same person who witnesses and signs off the acceptance test. An independent commissioning engineer runs the functional test, records the results, and either accepts or rejects the work. If it fails, the installer gets another pass — the witness never touches the installation.</p>
+            <p>Apply this as a discipline across every other pattern: separate the subagents that write code from those that verify it. One builder works; one or more verifiers run tests independently. If a verifier flags an issue, the builder is respawned with the specific failure. With near-instant models, adding a verification pass is practically free.</p>
+          </div>
+          <div class="pattern-rules">
+            <h4>The only important rule</h4>
+            <div class="rule-item"><div class="rule-dot"></div>Only one builder writes at a time</div>
+            <div class="rule-item"><div class="rule-dot"></div>Multiple verifiers can witness simultaneously</div>
+            <div class="rule-item"><div class="rule-dot"></div>Use automated tests, screenshots, and deterministic checks</div>
+            <div class="rule-item"><div class="rule-dot" style="background:var(--accent)"></div>Nothing is accepted without a signed test result</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 5: BUILD vs VERIFY -->
+  <section id="bv">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <div class="section-title">Builder vs. Verifier<small>The correction loop that guarantees quality</small></div>
+    </div>
+
+    <p>This is where multi-agent systems become truly powerful. The Builder and Verifier are independent agents — one creates, one witnesses — and nothing is accepted without a signed test result.</p>
+
+    <div class="bv-diagram">
+      <div class="bv-top">
+        <div class="bv-box builder">
+          <div class="bv-role">🔨 Builder / Installer</div>
+          <div class="bv-title">Executes the work</div>
+          <div class="bv-desc">Writes code, configures systems, generates outputs. Focused purely on installation. Does not participate in verification.</div>
+        </div>
+        <div class="bv-mid">⇄</div>
+        <div class="bv-box verifier">
+          <div class="bv-role">🔍 Commissioning Witness</div>
+          <div class="bv-title">Validates the result</div>
+          <div class="bv-desc">Runs tests, checks outputs against acceptance criteria, and records results. Does not touch the installation. Flags failures with specific feedback.</div>
+        </div>
+      </div>
+      <div class="bv-loop">
+        <span>Correction loop:</span>
+        <span class="loop-step">Install</span>
+        <span class="loop-arrow">→</span>
+        <span class="loop-step">Witness test</span>
+        <span class="loop-arrow">→</span>
+        <span class="loop-step loop-fail">Fail? Respawn with defect list</span>
+        <span class="loop-arrow">→</span>
+        <span class="loop-step">Rectify &amp; retest</span>
+        <span class="loop-arrow">→</span>
+        <span class="loop-step" style="background:rgba(45,122,79,0.1);border-color:rgba(45,122,79,0.3);color:var(--accent3);">✓ Accepted</span>
+      </div>
+    </div>
+
+    <p>This is the difference between "it runs" and "it actually works." The sequential loop consists of: one subagent breaking the project into acceptance criteria, one executing the next task, one running deterministic verification, and one updating documentation — before cycling back if anything fails.</p>
+
+    <div class="tag-row">
+      <span class="tag tag-green">Catches failures before cascade</span>
+      <span class="tag tag-blue">Deterministic test criteria</span>
+      <span class="tag tag-red">No output passes without evidence</span>
+    </div>
+  </section>
+
+  <!-- SECTION 6: CLOSING -->
+  <section id="closing">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <div class="section-title">Commission the System<small>You're the lead engineer now</small></div>
+    </div>
+
+    <p>The era of the solo-agent one-shot is over. Not because models aren't powerful enough — but because the architecture doesn't scale. What replaces it isn't just "more powerful models." It's better systems design.</p>
+
+    <div class="pullquote">
+      <p>"You're not writing prompts anymore. You're managing a commissioning crew."</p>
+      <cite>The shift from solo technician to lead engineer</cite>
+    </div>
+
+    <p>As models get faster, context windows get longer, and tooling matures, these patterns will keep evolving. The underlying principle won't: break problems into scoped, verifiable work orders. Delegate precisely. Accept nothing without evidence it works.</p>
+
+    <div class="wins-grid" style="margin-top:32px;">
+      <div class="win-card tokens" style="border-top:3px solid var(--accent);">
+        <div class="win-title" style="margin-bottom:8px;">More reliability</div>
+        <div class="win-desc">Verifier loops catch issues before they cascade into downstream tasks</div>
+      </div>
+      <div class="win-card control" style="border-top:3px solid var(--accent2);">
+        <div class="win-title" style="margin-bottom:8px;">More speed</div>
+        <div class="win-desc">Parallel execution of well-scoped independent tasks, up to 5× faster</div>
+      </div>
+      <div class="win-card speed" style="border-top:3px solid var(--accent3);">
+        <div class="win-title" style="margin-bottom:8px;">Harder problems</div>
+        <div class="win-desc">Multi-million token effective context means tackling projects that were previously impossible</div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <h3>Your crew is on site.</h3>
+      <p>Pick up the commissioning plan. Start with Pattern 01, work your way down, and always layer on Pattern 05 — the independent witness that signs everything off.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Further reading</h4>
+      <a href="https://www.cerebras.ai/blog/codex-spark-best-practices" class="footer-link">Codex &amp; Codex Spark best practices</a>
+      <a href="https://factory.ai/news/missions" class="footer-link">Factory.ai — Phased mission architecture</a>
+      <a href="https://huggingface.co/moonshotai/Kimi-K2.5" class="footer-link">MoonshotAI — Kimi-K2.5 swarm training</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
